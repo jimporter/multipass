@@ -36,6 +36,7 @@ auto fmt::formatter<CreateNetworkParameters, Char>::format(const CreateNetworkPa
         }},
         "Name": "{0}",
         "Type": "{1}",
+        "Dns": {{"Domain": "{5}"}},
         "Ipams": [
             {2}
         ],
@@ -51,7 +52,8 @@ auto fmt::formatter<CreateNetworkParameters, Char>::format(const CreateNetworkPa
                                    params.type,
                                    fmt::join(params.ipams, string_literal<Char>(",")),
                                    fmt::underlying(params.flags),
-                                   fmt::join(params.policies, string_literal<Char>(",")));
+                                   fmt::join(params.policies, string_literal<Char>(",")),
+                                   params.dns_domain);
 }
 
 template auto fmt::formatter<CreateNetworkParameters, char>::format<fmt::format_context>(

@@ -357,7 +357,8 @@ std::unordered_map<std::string, std::string> HCSVirtualMachineFactory::create_az
             .flags = hcn::HcnNetworkFlags::enable_dhcp_server,
             .guid = utils::make_uuid(network_params.name),
             .ipams = {{.type = hcn::HcnIpamType::Static(),
-                       .subnets = {{.ip_address_prefix = {zone.get_subnet().to_cidr()}}}}}};
+                       .subnets = {{.ip_address_prefix = {zone.get_subnet().to_cidr()}}}}},
+            .dns_domain = fmt::format("{}.multipass", zone.get_name())};
 
         const auto create_network_result = HCN().create_network(network_params);
         if (!create_network_result &&

@@ -63,6 +63,8 @@ struct CreateNetworkParameters
      * Network policies
      */
     std::vector<HcnNetworkPolicy> policies;
+
+    std::string dns_domain;
 };
 
 } // namespace multipass::hyperv::hcn
