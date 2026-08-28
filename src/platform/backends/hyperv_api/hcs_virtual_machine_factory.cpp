@@ -23,6 +23,7 @@
 #include <hyperv_api/hcs_virtual_machine.h>
 #include <hyperv_api/hcs_virtual_machine_exceptions.h>
 #include <hyperv_api/hyperv_api_string_conversion.h>
+#include <hyperv_api/net_io_api.h>
 #include <hyperv_api/virtdisk/virtdisk_wrapper.h>
 
 #include <multipass/constants.h>
@@ -32,10 +33,7 @@
 #include <multipass/vm_specs.h>
 #include <shared/windows/windows_feature_status.h>
 
-#include <ws2ipdef.h>
-
 #include <computenetwork.h>
-#include <iphlpapi.h>
 
 #include <fmt/std.h> // for the std::filesystem::path formatter
 
@@ -60,7 +58,8 @@ NET_LUID luid_for_hcn_network(const std::string& network_name)
     const auto alias = fmt::format(L"vEthernet ({})", to_wstring(network_name));
 
     NET_LUID luid{};
-    if (const auto ret = ConvertInterfaceAliasToLuid(alias.c_str(), &luid); ret != NO_ERROR)
+    if (const auto ret = MP_NETIOAPI.ConvertInterfaceAliasToLuid(alias.c_str(), &luid);
+        ret != NO_ERROR)
     {
         throw CreateNetworkException{"Could not get LUID for network {}", network_name};
     }
@@ -384,12 +383,12 @@ std::unordered_map<std::string, std::string> HCSVirtualMachineFactory::create_az
             // Enable forwarding for this network so that instances in different zones can
             // communicate with each other.
             MIB_IPINTERFACE_ROW row;
-            InitializeIpInterfaceEntry(&row);
+            MP_NETIOAPI.InitializeIpInterfaceEntry(&row);
             row.Family = AF_INET;
             row.InterfaceLuid = luid_for_hcn_network(name);
             row.ForwardingEnabled = true;
 
-            if (const auto set_iface_result = SetIpInterfaceEntry(&row);
+            if (const auto set_iface_result = MP_NETIOAPI.SetIpInterfaceEntry(&row);
                 set_iface_result != NO_ERROR)
             {
                 mpl::error(log_category, "Could not set IP forwarding for {}", name);
